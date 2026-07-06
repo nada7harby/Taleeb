@@ -1,550 +1,317 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { 
-  Briefcase, GraduationCap, Gift, Gamepad2, ArrowRight, X, 
-  Car, Play, Sparkles, Check, Flame, Trophy, Lock, Unlock, 
-  HelpCircle, RefreshCw, Star
+import type { ComponentType } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import {
+  Briefcase, GraduationCap, Gift, Gamepad2, ArrowRight, X,
+  Car, Play, Sparkles, Check, Flame, Trophy, Lock, Unlock, RefreshCw, Star,
 } from "lucide-react";
-import { TranslationDictionary, ServiceItem } from "../types";
+import { TranslationDictionary, AccentKey } from "../types";
+import { accents, EASE } from "../theme";
 
 interface ServicesProps {
   t: TranslationDictionary;
   locale: "en" | "ar";
 }
 
+const ICONS: Record<string, ComponentType<{ className?: string; strokeWidth?: number }>> = {
+  Briefcase, GraduationCap, Gift, Gamepad2,
+};
+
 export default function Services({ t, locale }: ServicesProps) {
+  const reduce = useReducedMotion();
   const [activeDemo, setActiveDemo] = useState<string | null>(null);
 
-  // 1. Workplace Simulation State
-  const [cars, setCars] = useState([
-    { name: locale === "en" ? "Faisal (Riyadh)" : "فيصل (الرياض)", progress: 75, color: "bg-violet-500", speed: 4 },
-    { name: locale === "en" ? "Amal (Jeddah)" : "أمل (جدة)", progress: 60, color: "bg-fuchsia-500", speed: 2 },
-    { name: locale === "en" ? "Saeed (Dammam)" : "سعيد (الدمام)", progress: 45, color: "bg-cyan-500", speed: 1.5 },
-  ]);
+  // Workplace race sim
+  const initialCars = () => [
+    { name: locale === "en" ? "Faisal · Riyadh" : "فيصل · الرياض", progress: 72, dot: "bg-[#ecdb33]" },
+    { name: locale === "en" ? "Amal · Jeddah" : "أمل · جدة", progress: 58, dot: "bg-[#40ccd0]" },
+    { name: locale === "en" ? "Saeed · Dammam" : "سعيد · الدمام", progress: 44, dot: "bg-[#3cdb4e]" },
+  ];
+  const [cars, setCars] = useState(initialCars);
+  const boostRace = () =>
+    setCars((prev) => prev.map((c, i) => ({
+      ...c,
+      progress: Math.min(c.progress + (i === 0 ? 12 : Math.floor(Math.random() * 8) + 2), 100),
+    })));
 
-  const handleWorkplaceAction = () => {
-    setCars((prev) => 
-      prev.map((car, index) => {
-        if (index === 0) { // Main player boost
-          const next = car.progress + 10;
-          return { ...car, progress: next >= 100 ? 100 : next };
-        }
-        // Others auto-progress slightly
-        const increment = Math.floor(Math.random() * 8) + 2;
-        const next = car.progress + increment;
-        return { ...car, progress: next >= 100 ? 100 : next };
-      })
-    );
-  };
-
-  const resetWorkplace = () => {
-    setCars([
-      { name: locale === "en" ? "Faisal (Riyadh)" : "فيصل (الرياض)", progress: 30, color: "bg-violet-500", speed: 4 },
-      { name: locale === "en" ? "Amal (Jeddah)" : "أمل (جدة)", progress: 45, color: "bg-fuchsia-500", speed: 2 },
-      { name: locale === "en" ? "Saeed (Dammam)" : "سعيد (الدمام)", progress: 25, color: "bg-cyan-500", speed: 1.5 },
-    ]);
-  };
-
-  // 2. Education Skill Tree State
-  const [skills, setSkills] = useState([
-    { id: "s1", label: locale === "en" ? "Behavioral Psychology" : "علم النفس السلوكي", unlocked: true, active: true },
-    { id: "s2", label: locale === "en" ? "Octalysis Framework" : "إطار أوكتاليسيس", unlocked: false, active: false, req: "s1" },
-    { id: "s3", label: locale === "en" ? "Interaction Sound Design" : "هندسة الصوت التفاعلي", unlocked: false, active: false, req: "s2" },
-    { id: "s4", label: locale === "en" ? "Feedback Loop Mechanics" : "آليات حلقات التغذية", unlocked: false, active: false, req: "s2" },
-  ]);
+  // Education skill tree
+  const initialSkills = () => [
+    { id: "s1", label: locale === "en" ? "Behavioral Psychology" : "علم النفس السلوكي", unlocked: true, req: undefined as string | undefined },
+    { id: "s2", label: locale === "en" ? "Octalysis Framework" : "إطار أوكتاليسيس", unlocked: false, req: "s1" },
+    { id: "s3", label: locale === "en" ? "Sound Design" : "هندسة الصوت", unlocked: false, req: "s2" },
+    { id: "s4", label: locale === "en" ? "Feedback Loops" : "حلقات التغذية", unlocked: false, req: "s2" },
+  ];
+  const [skills, setSkills] = useState(initialSkills);
   const [points, setPoints] = useState(1);
-
   const unlockSkill = (id: string, req?: string) => {
-    if (req) {
-      const parent = skills.find((s) => s.id === req);
-      if (!parent || !parent.unlocked) return;
-    }
-    if (points >= 1) {
-      setSkills((prev) =>
-        prev.map((s) => {
-          if (s.id === id) {
-            return { ...s, unlocked: true, active: true };
-          }
-          return s;
-        })
-      );
-      setPoints((p) => p - 1);
-    }
+    if (req && !skills.find((s) => s.id === req)?.unlocked) return;
+    if (points < 1) return;
+    setSkills((prev) => prev.map((s) => (s.id === id ? { ...s, unlocked: true } : s)));
+    setPoints((p) => p - 1);
   };
 
-  const earnPoint = () => {
-    setPoints((p) => p + 1);
-  };
-
-  const resetSkills = () => {
-    setSkills([
-      { id: "s1", label: locale === "en" ? "Behavioral Psychology" : "علم النفس السلوكي", unlocked: true, active: true },
-      { id: "s2", label: locale === "en" ? "Octalysis Framework" : "إطار أوكتاليسيس", unlocked: false, active: false, req: "s1" },
-      { id: "s3", label: locale === "en" ? "Interaction Sound Design" : "هندسة الصوت التفاعلي", unlocked: false, active: false, req: "s2" },
-      { id: "s4", label: locale === "en" ? "Feedback Loop Mechanics" : "آليات حلقات التغذية", unlocked: false, active: false, req: "s2" },
-    ]);
-    setPoints(1);
-  };
-
-  // 3. Marketing Spin State
+  // Marketing spin
   const [spinning, setSpinning] = useState(false);
   const [spinResult, setSpinResult] = useState<string | null>(null);
-  const rewards = [
-    locale === "en" ? "Rare Avatar Armor" : "درع الشخصية النادر",
-    locale === "en" ? "Double Experience Booster" : "مضاعف نقاط الخبرة 2x",
-    locale === "en" ? "Exclusive Profile Frame" : "إطار ملف شخصي حصري",
-    locale === "en" ? "VIP Discord Guild Role" : "رتبة نقابة كبار الشخصيات",
-  ];
-
+  const rewards = locale === "en"
+    ? ["Rare Avatar Armor", "2x XP Booster", "Exclusive Frame", "VIP Guild Role"]
+    : ["درع نادر", "مضاعف نقاط 2x", "إطار حصري", "رتبة كبار الشخصيات"];
   const spinWheel = () => {
-    if (!spinning) {
-      setSpinning(true);
-      setSpinResult(null);
-      setTimeout(() => {
-        const randomIndex = Math.floor(Math.random() * rewards.length);
-        setSpinResult(rewards[randomIndex]);
-        setSpinning(false);
-      }, 1500);
-    }
+    if (spinning) return;
+    setSpinning(true);
+    setSpinResult(null);
+    setTimeout(() => { setSpinResult(rewards[Math.floor(Math.random() * rewards.length)]); setSpinning(false); }, 1500);
   };
 
   return (
-    <section id="services" className="py-24 relative overflow-hidden px-4 md:px-8">
-      <div className="max-w-7xl mx-auto relative z-10">
-        
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.div
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-600/10 border border-violet-500/20 text-xs font-bold text-violet-400 uppercase tracking-widest mb-4"
-            initial={{ opacity: 0, y: 15 }}
+    <section id="services" className="py-24 md:py-32 relative px-4 md:px-8">
+      <div className="max-w-[1400px] mx-auto">
+        {/* Header — carries this page's 2nd eyebrow */}
+        <div className="max-w-3xl mb-14">
+          <motion.span
+            className="inline-block text-[11px] font-mono font-semibold uppercase tracking-[0.22em] text-[#40ccd0] mb-4"
+            initial={reduce ? false : { opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
             {t.services.sectionBadge}
-          </motion.div>
+          </motion.span>
           <motion.h2
-            className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight font-display text-white mb-4"
-            initial={{ opacity: 0, y: 15 }}
+            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white"
+            initial={reduce ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
+            transition={{ delay: 0.05, ease: EASE }}
           >
             {t.services.sectionTitle}
           </motion.h2>
           <motion.p
-            className="text-zinc-400 text-base sm:text-lg font-light leading-relaxed"
-            initial={{ opacity: 0 }}
+            className="text-zinc-400 text-base sm:text-lg leading-relaxed mt-4 max-w-2xl"
+            initial={reduce ? false : { opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.12 }}
           >
             {t.services.sectionSubhead}
           </motion.p>
         </div>
 
-        {/* Bento-Grid Style Services Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 items-stretch">
+        {/* Bento — asymmetric 7/5, 5/7 rhythm */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
           {t.services.items.map((item, index) => {
-            const isLarge = index === 0 || index === 3;
-            const gridSpan = isLarge ? "lg:col-span-7" : "lg:col-span-5";
-
+            const c = accents[item.color as AccentKey];
+            const Icon = ICONS[item.iconName] ?? Briefcase;
+            const span = index === 0 || index === 3 ? "lg:col-span-7" : "lg:col-span-5";
             return (
               <motion.div
                 key={item.id}
-                className={`${gridSpan} rounded-3xl bg-[#0d0a18]/60 backdrop-blur border border-violet-500/10 p-6 sm:p-8 flex flex-col justify-between hover:border-violet-500/30 transition-all duration-500 group relative overflow-hidden`}
-                initial={{ opacity: 0, y: 30 }}
+                className={`${span} group relative rounded-3xl bg-[#0a0a0c]/80 border border-white/[0.06] ${c.hoverBorder} p-6 sm:p-8 flex flex-col justify-between overflow-hidden transition-colors duration-500`}
+                initial={reduce ? false : { opacity: 0, y: 28 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ delay: index * 0.1, duration: 0.6 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ delay: index * 0.08, duration: 0.6, ease: EASE }}
               >
-                {/* Background Gradient Ornaments */}
-                <div className={`absolute top-0 right-0 w-48 h-48 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-10 blur-[80px] transition-opacity duration-700 pointer-events-none`} />
-
-                <div>
-                  {/* Icon & Metrics Block */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div className={`p-4 rounded-2xl bg-gradient-to-br ${item.color} text-white shadow-lg shadow-violet-950/20`}>
-                      {item.iconName === "Briefcase" && <Briefcase className="w-6 h-6" />}
-                      {item.iconName === "GraduationCap" && <GraduationCap className="w-6 h-6" />}
-                      {item.iconName === "Gift" && <Gift className="w-6 h-6" />}
-                      {item.iconName === "Gamepad2" && <Gamepad2 className="w-6 h-6" />}
-                    </div>
-                    
-                    {/* Performance highlight indicator */}
-                    <div className="text-right">
-                      <span className="text-xl sm:text-2xl font-extrabold text-white font-mono block">
-                        {item.metrics.value}
-                      </span>
-                      <span className="text-[10px] sm:text-xs text-zinc-500 font-medium block uppercase tracking-wider">
-                        {item.metrics.label}
-                      </span>
+                <div
+                  className="absolute -top-24 -end-24 w-56 h-56 rounded-full blur-[90px] opacity-0 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none"
+                  style={{ background: c.hex }}
+                />
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-6">
+                    <span className={`grid place-items-center w-14 h-14 rounded-2xl ${c.solid}`}>
+                      <Icon className="w-6 h-6" strokeWidth={2} />
+                    </span>
+                    <div className="text-end">
+                      <span className={`block text-2xl sm:text-3xl font-bold font-mono ${c.text}`}>{item.metrics.value}</span>
+                      <span className="block text-[10px] text-zinc-500 uppercase tracking-wider mt-0.5">{item.metrics.label}</span>
                     </div>
                   </div>
 
-                  {/* Service Titles */}
-                  <span className="text-xs font-mono font-bold tracking-wider text-violet-400 block uppercase mb-1">
-                    {item.subtitle}
-                  </span>
-                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 group-hover:text-violet-300 transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="text-zinc-400 text-sm leading-relaxed mb-6 font-light">
-                    {item.description}
-                  </p>
+                  <span className={`text-xs font-mono font-semibold uppercase tracking-wider ${c.text}`}>{item.subtitle}</span>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mt-1.5 mb-3">{item.title}</h3>
+                  <p className="text-zinc-400 text-sm leading-relaxed mb-6 max-w-lg">{item.description}</p>
 
-                  {/* Bullet point lists */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6 border-t border-white/5 pt-4">
-                    {item.features.map((feat, fIdx) => (
-                      <div key={fIdx} className="flex items-center gap-2 text-xs text-zinc-300">
-                        <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 border-t border-white/[0.06] pt-5">
+                    {item.features.map((feat, fi) => (
+                      <div key={fi} className="flex items-center gap-2.5 text-[13px] text-zinc-300">
+                        <Check className={`w-4 h-4 flex-shrink-0 ${c.text}`} strokeWidth={2.5} />
                         <span>{feat}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Tags and CTA Simulation Trigger */}
-                <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/5 pt-5 mt-auto">
+                <div className="relative flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.06] pt-5 mt-6">
                   <div className="flex flex-wrap gap-1.5">
-                    {item.tags.map((tag, tIdx) => (
-                      <span
-                        key={tIdx}
-                        className="px-2.5 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-medium text-zinc-400"
-                      >
-                        #{tag}
+                    {item.tags.slice(0, 3).map((tag, ti) => (
+                      <span key={ti} className="px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.06] text-[10px] font-medium text-zinc-400">
+                        {tag}
                       </span>
                     ))}
                   </div>
-
-                  {/* Simulation button triggers */}
                   <button
                     onClick={() => setActiveDemo(item.id)}
-                    className="flex items-center gap-1.5 text-xs font-bold text-violet-400 hover:text-amber-400 transition-colors group/btn"
+                    className={`inline-flex items-center gap-1.5 text-sm font-semibold ${c.text} hover:text-white transition-colors group/btn`}
                   >
                     <span>{t.services.viewDemo}</span>
-                    <ArrowRight className={`w-4 h-4 transition-transform group-hover/btn:translate-x-1 ${locale === "ar" ? "rotate-180 group-hover/btn:-translate-x-1" : ""}`} />
+                    <ArrowRight className={`w-4 h-4 transition-transform group-hover/btn:translate-x-1 ${locale === "ar" ? "rotate-180 group-hover/btn:-translate-x-1" : ""}`} strokeWidth={2} />
                   </button>
                 </div>
               </motion.div>
             );
           })}
         </div>
+      </div>
 
-        {/* Immersive Sandbox Simulator Overlay - Modal Experience */}
-        <AnimatePresence>
-          {activeDemo && (
+      {/* Simulator modal */}
+      <AnimatePresence>
+        {activeDemo && (
+          <motion.div
+            className="fixed inset-0 z-[60] bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setActiveDemo(null)}
+          >
             <motion.div
-              id="sandbox-simulator-overlay"
-              className="fixed inset-0 z-50 bg-[#06040c]/80 backdrop-blur-md flex items-center justify-center p-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              className="w-full max-w-xl bg-[#0a0a0c] border border-white/10 edge-hi rounded-3xl overflow-hidden p-6 shadow-2xl"
+              initial={{ scale: 0.94, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.94, y: 20 }}
+              transition={{ type: "spring", damping: 26, stiffness: 260 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <motion.div
-                className="w-full max-w-xl bg-[#0e0a20] border border-violet-500/20 rounded-3xl overflow-hidden p-6 shadow-2xl relative shadow-violet-950/50"
-                initial={{ scale: 0.9, y: 30 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.9, y: 30 }}
-                transition={{ type: "spring", damping: 25 }}
-              >
-                {/* Header of Sandbox */}
-                <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-6">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-amber-400 animate-spin-slow" />
-                    <div>
-                      <h4 className="text-sm font-extrabold text-white font-display">
-                        TAL3EEB SANDBOX EMULATOR
-                      </h4>
-                      <p className="text-[10px] text-zinc-500 font-mono">
-                        Running custom behavioral game loop v2.6
-                      </p>
-                    </div>
+              <div className="flex items-center justify-between border-b border-white/[0.06] pb-4 mb-6">
+                <div className="flex items-center gap-2.5">
+                  <Sparkles className="w-5 h-5 text-[#ecdb33]" />
+                  <div>
+                    <h4 className="text-sm font-bold text-white">{locale === "en" ? "Tal3eeb Sandbox" : "بيئة تَلْعِيب التجريبية"}</h4>
+                    <p className="text-[10px] text-zinc-500 font-mono">Behavioral game loop · interactive</p>
                   </div>
-                  <button
-                    onClick={() => setActiveDemo(null)}
-                    className="p-1.5 rounded-full bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
                 </div>
+                <button onClick={() => setActiveDemo(null)} className="p-1.5 rounded-full bg-white/[0.05] text-zinc-400 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-                {/* Content based on the selected demo */}
-                <div className="min-h-[280px]">
-                  
-                  {/* A. WORKPLACE SALES RACE SIMULATOR */}
-                  {activeDemo === "workplace" && (
-                    <div className="flex flex-col justify-between h-full">
-                      <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h5 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                            <Car className="w-4 h-4 text-violet-400" />
-                            {locale === "en" ? "Q3 Sales Velocity Grand Prix" : "سباق المبيعات للربع الثالث"}
-                          </h5>
-                          <button
-                            onClick={resetWorkplace}
-                            className="p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
-                            title="Reset Simulator"
-                          >
-                            <RefreshCw className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                        <p className="text-xs text-zinc-400 mb-6 font-light">
-                          {locale === "en" 
-                            ? "Simulate closing a live enterprise contract. Closing deals boosts your racer down the track in real-time."
-                            : "قم بمحاكاة إغلاق صفقة مبيعات حية للشركة. إغلاق الصفقات يدفع سيارة موظفك للأمام على حلبة السباق."}
-                        </p>
-
-                        {/* Tracks */}
-                        <div className="flex flex-col gap-4 mb-6">
-                          {cars.map((car, idx) => (
-                            <div key={idx} className="flex flex-col gap-1.5">
-                              <div className="flex items-center justify-between text-xs font-mono">
-                                <span className={idx === 0 ? "text-violet-400 font-bold" : "text-zinc-400"}>
-                                  {car.name} {idx === 0 && "🏆"}
-                                </span>
-                                <span className="font-bold text-white">{car.progress}%</span>
-                              </div>
-                              <div className="h-6 w-full bg-[#16122d] rounded-full overflow-hidden border border-white/5 relative p-1">
-                                <motion.div
-                                  className={`h-full rounded-full ${car.color} flex items-center justify-end px-3`}
-                                  animate={{ width: `${car.progress}%` }}
-                                  transition={{ duration: 0.6, ease: "easeOut" }}
-                                >
-                                  {idx === 0 && <Car className="w-3.5 h-3.5 text-zinc-950 animate-bounce" />}
-                                </motion.div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Boost Button */}
-                      <button
-                        onClick={handleWorkplaceAction}
-                        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-violet-600/20 flex items-center justify-center gap-2"
-                      >
-                        <Play className="w-4 h-4 fill-white" />
-                        <span>{locale === "en" ? "CLOSE CORPORATE DEAL (+10% BOOST)" : "إغلاق صفقة جديدة (+10% تقدم)"}</span>
-                      </button>
+              <div className="min-h-[280px]">
+                {/* Workplace race */}
+                {activeDemo === "workplace" && (
+                  <div className="flex flex-col h-full">
+                    <div className="flex items-center justify-between mb-4">
+                      <h5 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Car className="w-4 h-4 text-[#ecdb33]" /> {locale === "en" ? "Q3 Sales Grand Prix" : "سباق مبيعات الربع الثالث"}
+                      </h5>
+                      <button onClick={() => setCars(initialCars)} className="p-1 text-zinc-500 hover:text-zinc-300"><RefreshCw className="w-3.5 h-3.5" /></button>
                     </div>
-                  )}
-
-                  {/* B. EDUCATION COGNITIVE SKILL TREE */}
-                  {activeDemo === "education" && (
-                    <div className="flex flex-col justify-between h-full">
-                      <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h5 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                            <Trophy className="w-4 h-4 text-amber-400" />
-                            {locale === "en" ? "Gamification Architect Skill Tree" : "شجرة مهارات مصمم الألعاب الرقمي"}
-                          </h5>
-                          <button
-                            onClick={resetSkills}
-                            className="p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
-                            title="Reset Tree"
-                          >
-                            <RefreshCw className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                        <p className="text-xs text-zinc-400 mb-6 font-light">
-                          {locale === "en" 
-                            ? "Complete training quests to gain skill points. Invest points to climb your professional mastery tree."
-                            : "أكمل غارات التعريب اليومية لتكسب نقاط خبرة. استخدم النقاط لفتح وتطوير فروع تخصصك."}
-                        </p>
-
-                        {/* Point Pool Status */}
-                        <div className="flex items-center justify-between bg-amber-500/10 border border-amber-500/25 p-3 rounded-xl mb-6">
-                          <div className="flex items-center gap-2">
-                            <Star className="w-4 h-4 text-amber-400 fill-amber-400 animate-pulse" />
-                            <span className="text-xs text-zinc-300">
-                              {locale === "en" ? "Skill Point Pool:" : "مخزون نقاط المهارة المتاح:"}
-                            </span>
+                    <div className="flex flex-col gap-4 mb-6">
+                      {cars.map((car, i) => (
+                        <div key={i} className="flex flex-col gap-1.5">
+                          <div className="flex items-center justify-between text-xs font-mono">
+                            <span className={i === 0 ? "text-[#ecdb33] font-bold" : "text-zinc-400"}>{car.name}{i === 0 ? " ★" : ""}</span>
+                            <span className="font-bold text-white tabular-nums">{car.progress}%</span>
                           </div>
-                          <span className="text-base font-extrabold text-amber-400 font-mono">{points} SP</span>
+                          <div className="h-3 w-full bg-white/[0.06] rounded-full overflow-hidden">
+                            <motion.div className={`h-full rounded-full ${car.dot}`} animate={{ width: `${car.progress}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
+                          </div>
                         </div>
-
-                        {/* Skill Nodes Grid */}
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                          {skills.map((skill) => {
-                            const isReqMet = !skill.req || skills.find((s) => s.id === skill.req)?.unlocked;
-                            const isClickable = !skill.unlocked && isReqMet && points >= 1;
-
-                            return (
-                              <button
-                                key={skill.id}
-                                disabled={skill.unlocked || !isReqMet || points < 1}
-                                onClick={() => unlockSkill(skill.id, skill.req)}
-                                className={`p-4 rounded-xl text-start border transition-all flex items-center justify-between ${
-                                  skill.unlocked 
-                                    ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
-                                    : isReqMet && points >= 1
-                                    ? "bg-[#18132e] border-violet-500/30 text-zinc-300 cursor-pointer hover:border-amber-400"
-                                    : "bg-black/20 border-white/5 text-zinc-600 cursor-not-allowed"
-                                }`}
-                              >
-                                <div>
-                                  <span className="text-[9px] font-mono block text-zinc-500 uppercase">
-                                    {skill.unlocked ? "ACTIVE LEVEL" : "LOCKED SKILL"}
-                                  </span>
-                                  <span className="text-xs font-bold block mt-0.5">{skill.label}</span>
-                                </div>
-                                <div>
-                                  {skill.unlocked ? (
-                                    <Unlock className="w-4 h-4 text-amber-400" />
-                                  ) : (
-                                    <Lock className="w-4 h-4 text-zinc-500" />
-                                  )}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Earn Points Action Button */}
-                      <button
-                        onClick={earnPoint}
-                        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-zinc-950 font-bold text-sm shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
-                      >
-                        <Flame className="w-4 h-4 fill-zinc-950 text-zinc-950" />
-                        <span>{locale === "en" ? "COMPLETE RECALL QUIZ (+1 SKILL POINT)" : "أكمل تحدي المعرفة اليومي (+1 نقطة مهارة)"}</span>
-                      </button>
+                      ))}
                     </div>
-                  )}
+                    <button onClick={boostRace} className="mt-auto w-full py-3.5 rounded-full bg-[#ecdb33] text-black font-bold text-sm flex items-center justify-center gap-2">
+                      <Play className="w-4 h-4 fill-black" /> {locale === "en" ? "Close a deal · +12%" : "إغلاق صفقة · +12%"}
+                    </button>
+                  </div>
+                )}
 
-                  {/* C. MARKETING SPIN WHEEL */}
-                  {activeDemo === "marketing" && (
-                    <div className="flex flex-col justify-between h-full text-center">
-                      <div>
-                        <h5 className="text-sm font-bold text-white uppercase tracking-wider mb-2 flex items-center justify-center gap-2">
-                          <Gift className="w-4 h-4 text-cyan-400" />
-                          {locale === "en" ? "Brand Activation Prize Wheel" : "عجلة جوائز العلامة التجارية التفاعلية"}
-                        </h5>
-                        <p className="text-xs text-zinc-400 mb-6 max-w-sm mx-auto font-light">
-                          {locale === "en" 
-                            ? "Spin to unlock premium virtual collectibles. Gamified reward mechanics yield 4.8x more social shares."
-                            : "أدر العجلة للحصول على مقتنيات ملفك الشخصي الافتراضي. تزيد آليات المفاجأة من مشاركة علامتك بنسبة هائلة."}
-                        </p>
-
-                        {/* Interactive Rotating Graphic */}
-                        <div className="relative w-36 h-36 mx-auto mb-6 flex items-center justify-center">
-                          <motion.div
-                            className="absolute inset-0 rounded-full border-4 border-dashed border-cyan-500/30 flex items-center justify-center"
-                            animate={{ rotate: spinning ? 1080 : 0 }}
-                            transition={{ duration: 1.5, ease: "easeInOut" }}
-                          >
-                            <div className="w-full h-full rounded-full bg-gradient-to-tr from-cyan-500/10 via-emerald-500/10 to-transparent flex items-center justify-center relative">
-                              {/* Internal spokes of wheel */}
-                              <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-cyan-500/20" />
-                              <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-cyan-500/20" />
-                            </div>
-                          </motion.div>
-                          
-                          {/* Indicator Arrow */}
-                          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[12px] border-l-transparent border-r-transparent border-t-cyan-400 z-10" />
-
-                          {/* Spin Center Button */}
+                {/* Education tree */}
+                {activeDemo === "education" && (
+                  <div className="flex flex-col h-full">
+                    <div className="flex items-center justify-between mb-4">
+                      <h5 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Trophy className="w-4 h-4 text-[#40ccd0]" /> {locale === "en" ? "Mastery Skill Tree" : "شجرة المهارات"}
+                      </h5>
+                      <button onClick={() => { setSkills(initialSkills); setPoints(1); }} className="p-1 text-zinc-500 hover:text-zinc-300"><RefreshCw className="w-3.5 h-3.5" /></button>
+                    </div>
+                    <div className="flex items-center justify-between bg-[#40ccd0]/10 border border-[#40ccd0]/25 p-3 rounded-xl mb-5">
+                      <span className="flex items-center gap-2 text-xs text-zinc-300"><Star className="w-4 h-4 text-[#40ccd0] fill-[#40ccd0]" /> {locale === "en" ? "Skill points" : "نقاط المهارة"}</span>
+                      <span className="text-base font-bold font-mono text-[#40ccd0] tabular-nums">{points} SP</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 mb-6">
+                      {skills.map((skill) => {
+                        const reqMet = !skill.req || skills.find((s) => s.id === skill.req)?.unlocked;
+                        const clickable = !skill.unlocked && reqMet && points >= 1;
+                        return (
                           <button
-                            disabled={spinning}
-                            onClick={spinWheel}
-                            className={`absolute w-16 h-16 rounded-full font-bold text-xs flex items-center justify-center transition-all ${
-                              spinning 
-                                ? "bg-zinc-800 text-zinc-500 cursor-not-allowed" 
-                                : "bg-cyan-500 text-zinc-950 shadow-lg shadow-cyan-500/30 hover:scale-105 cursor-pointer"
+                            key={skill.id}
+                            disabled={!clickable}
+                            onClick={() => unlockSkill(skill.id, skill.req)}
+                            className={`p-3.5 rounded-xl text-start border flex items-center justify-between transition-all ${
+                              skill.unlocked ? "bg-[#40ccd0]/10 border-[#40ccd0]/30 text-[#40ccd0]"
+                              : clickable ? "bg-white/[0.03] border-white/10 text-zinc-300 hover:border-[#40ccd0]/50 cursor-pointer"
+                              : "bg-white/[0.02] border-white/[0.06] text-zinc-600 cursor-not-allowed"
                             }`}
                           >
-                            {spinning ? "SPINNING" : "SPIN"}
+                            <span className="text-xs font-bold">{skill.label}</span>
+                            {skill.unlocked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4 opacity-60" />}
                           </button>
-                        </div>
+                        );
+                      })}
+                    </div>
+                    <button onClick={() => setPoints((p) => p + 1)} className="mt-auto w-full py-3.5 rounded-full bg-[#40ccd0] text-black font-bold text-sm flex items-center justify-center gap-2">
+                      <Flame className="w-4 h-4 fill-black" /> {locale === "en" ? "Complete quiz · +1 SP" : "أكمل التحدي · +1 نقطة"}
+                    </button>
+                  </div>
+                )}
 
-                        {/* Result Display Box */}
-                        <div className="min-h-[44px]">
-                          <AnimatePresence mode="wait">
-                            {spinResult && (
-                              <motion.div
-                                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-xs font-bold text-emerald-400"
-                                initial={{ scale: 0.8, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                exit={{ scale: 0.8, opacity: 0 }}
-                              >
-                                <Sparkles className="w-3.5 h-3.5" />
-                                <span>{spinResult}</span>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      </div>
-
-                      {/* Launch Trigger */}
-                      <button
-                        disabled={spinning}
-                        onClick={spinWheel}
-                        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-zinc-950 font-bold text-sm shadow-lg shadow-cyan-500/20 mt-4 disabled:opacity-50"
-                      >
-                        {locale === "en" ? "SPIN WHEEL FOR PRIZE" : "اضغط لتدوير عجلة الحظ الكبرى"}
+                {/* Marketing spin */}
+                {activeDemo === "marketing" && (
+                  <div className="flex flex-col items-center text-center h-full">
+                    <h5 className="text-sm font-bold text-white flex items-center gap-2 mb-2">
+                      <Gift className="w-4 h-4 text-[#3cdb4e]" /> {locale === "en" ? "Brand Prize Wheel" : "عجلة جوائز العلامة"}
+                    </h5>
+                    <p className="text-xs text-zinc-400 mb-6 max-w-sm">{locale === "en" ? "Surprise rewards drive 4.8x more social shares." : "آليات المفاجأة تضاعف مشاركة علامتك بشكل كبير."}</p>
+                    <div className="relative w-36 h-36 mb-6 grid place-items-center">
+                      <motion.div className="absolute inset-0 rounded-full border-4 border-dashed border-[#3cdb4e]/30" animate={{ rotate: spinning ? 1080 : 0 }} transition={{ duration: 1.5, ease: "easeInOut" }} />
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[12px] border-l-transparent border-r-transparent border-t-[#3cdb4e]" />
+                      <button disabled={spinning} onClick={spinWheel} className={`w-16 h-16 rounded-full font-bold text-xs ${spinning ? "bg-zinc-800 text-zinc-500" : "bg-[#3cdb4e] text-black hover:scale-105 transition-transform"}`}>
+                        {spinning ? "..." : "SPIN"}
                       </button>
                     </div>
-                  )}
-
-                  {/* D. CUSTOM GAME STUDIO MULTIPLAYER SIM */}
-                  {activeDemo === "consultancy" && (
-                    <div className="flex flex-col justify-between h-full">
-                      <div>
-                        <h5 className="text-sm font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
-                          <Gamepad2 className="w-4 h-4 text-fuchsia-400" />
-                          {locale === "en" ? "Custom Multiplayer Match Lobby" : "بوابة خادم الألعاب والانتظار المخصصة"}
-                        </h5>
-                        <p className="text-xs text-zinc-400 mb-6 font-light">
-                          {locale === "en" 
-                            ? "Simulating a custom web-based concurrent gaming room designed for corporate teams."
-                            : "محاكاة لغرفة انتظار وتحدي جماعي مباشر عبر الويب مخصصة لفرق عمل المكاتب المشتركة."}
-                        </p>
-
-                        {/* Simulated Tech Log Monitor */}
-                        <div className="bg-[#050308] border border-fuchsia-500/10 rounded-2xl p-4 font-mono text-[10px] text-fuchsia-400 flex flex-col gap-1.5 mb-6">
-                          <div>&gt; CONNECTING SECURE GATEWAY... OK</div>
-                          <div>&gt; SYSTEM_READY: AUTHENTICATING GCC CLIENT LOBBY</div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span>&gt; LOBBY STATUS: 28 TEAM PLAYERS ACTIVE</span>
-                          </div>
-                          <div className="text-zinc-500">&gt; Faisal_Riyadh Joined Team Alpha (Leader)</div>
-                          <div className="text-zinc-500">&gt; Noura_Dubai Joined Team Beta (Fighter)</div>
-                          <div className="text-zinc-500">&gt; Khalid_Jeddah Unlocked Achievements badge 'Glory'</div>
-                          <div className="animate-pulse text-yellow-400">&gt; CURRENT ALLIANCE RANKING SCORE: 48,290 XP</div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => {
-                          const alertTxt = locale === "en" 
-                            ? "Connecting to custom multiplayer sandbox servers..." 
-                            : "جاري ربط الخادم بغرفة انتظار تحدي المبيعات الجماعي الحالي...";
-                          alert(alertTxt);
-                        }}
-                        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-fuchsia-500 to-rose-500 hover:from-fuchsia-400 hover:to-rose-400 text-white font-bold text-sm shadow-lg shadow-fuchsia-500/20"
-                      >
-                        {locale === "en" ? "DEPLOY CUSTOM SERVER Blueprints" : "إعداد ونشر خادم ألعاب خاص بنقابتك"}
-                      </button>
+                    <div className="min-h-[40px]">
+                      <AnimatePresence mode="wait">
+                        {spinResult && (
+                          <motion.div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#3cdb4e]/15 border border-[#3cdb4e]/30 text-xs font-bold text-[#3cdb4e]" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}>
+                            <Sparkles className="w-3.5 h-3.5" /> {spinResult}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                  )}
+                    <button disabled={spinning} onClick={spinWheel} className="mt-auto w-full py-3.5 rounded-full bg-[#3cdb4e] text-black font-bold text-sm disabled:opacity-50">
+                      {locale === "en" ? "Spin the wheel" : "أدر العجلة"}
+                    </button>
+                  </div>
+                )}
 
-                </div>
-
-                {/* Footer close */}
-                <div className="border-t border-white/5 pt-4 mt-6 text-center">
-                  <span className="text-[10px] text-zinc-500 font-mono block">
-                    {locale === "en" 
-                      ? "Interactive simulations are simplified showcases of our robust deployment capabilities."
-                      : "النماذج الممثلة أعلاه هي تمثيلات بصرية مبسطة لقدرات البناء والدمج البرمجية المعتمدة لدينا."}
-                  </span>
-                </div>
-              </motion.div>
+                {/* Consultancy lobby */}
+                {activeDemo === "consultancy" && (
+                  <div className="flex flex-col h-full">
+                    <h5 className="text-sm font-bold text-white flex items-center gap-2 mb-2">
+                      <Gamepad2 className="w-4 h-4 text-[#d04242]" /> {locale === "en" ? "Multiplayer Match Lobby" : "غرفة التحدي الجماعي"}
+                    </h5>
+                    <p className="text-xs text-zinc-400 mb-5">{locale === "en" ? "A live web-based room built for corporate teams." : "غرفة تحدي مباشرة عبر الويب لفرق العمل."}</p>
+                    <div className="bg-black border border-[#d04242]/15 rounded-2xl p-4 font-mono text-[10px] text-[#d04242] flex flex-col gap-1.5 mb-6">
+                      <div>&gt; CONNECTING SECURE GATEWAY... OK</div>
+                      <div>&gt; AUTHENTICATING GCC CLIENT LOBBY</div>
+                      <div className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#3cdb4e]" /> LOBBY: 28 PLAYERS ACTIVE</div>
+                      <div className="text-zinc-500">&gt; Faisal_Riyadh joined Team Alpha</div>
+                      <div className="text-zinc-500">&gt; Noura_Dubai joined Team Beta</div>
+                      <div className="text-[#ecdb33]">&gt; ALLIANCE SCORE: 48,290 XP</div>
+                    </div>
+                    <button onClick={() => setActiveDemo(null)} className="mt-auto w-full py-3.5 rounded-full bg-[#d04242] text-white font-bold text-sm">
+                      {locale === "en" ? "Deploy custom server" : "نشر خادم مخصص"}
+                    </button>
+                  </div>
+                )}
+              </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

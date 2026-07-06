@@ -1,3 +1,5 @@
+export type AccentKey = "yellow" | "cyan" | "green" | "red";
+
 export interface NavLink {
   id: string;
   label: string;
@@ -10,7 +12,7 @@ export interface ServiceItem {
   subtitle: string;
   description: string;
   iconName: string;
-  color: string;
+  color: AccentKey;
   tags: string[];
   features: string[];
   metrics: { value: string; label: string };
@@ -23,7 +25,7 @@ export interface FeatureItem {
   description: string;
   iconName: string;
   badge: string;
-  color: string;
+  color: AccentKey;
   stats: string;
 }
 
@@ -34,7 +36,7 @@ export interface StatItem {
   prefix?: string;
   label: string;
   description: string;
-  color: string;
+  color: AccentKey;
 }
 
 export interface TestimonialItem {

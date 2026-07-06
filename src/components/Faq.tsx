@@ -1,104 +1,73 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Plus, Minus, HelpCircle } from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import { Plus, Minus } from "lucide-react";
 import { TranslationDictionary } from "../types";
+import { EASE } from "../theme";
 
 interface FaqProps {
   t: TranslationDictionary;
   locale: "en" | "ar";
 }
 
-export default function Faq({ t, locale }: FaqProps) {
-  const [openId, setOpenId] = useState<string | null>(null);
-
-  const toggleFaq = (id: string) => {
-    setOpenId((prev) => (prev === id ? null : id));
-  };
+export default function Faq({ t }: FaqProps) {
+  const reduce = useReducedMotion();
+  const [openId, setOpenId] = useState<string | null>(t.faq.items[0]?.id ?? null);
 
   return (
-    <section id="faq" className="py-24 relative overflow-hidden px-4 md:px-8">
-      <div className="max-w-7xl mx-auto relative z-10">
-        
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.div
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-600/10 border border-violet-500/20 text-xs font-bold text-violet-400 uppercase tracking-widest mb-4"
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            {t.faq.sectionBadge}
-          </motion.div>
+    <section id="faq" className="py-24 md:py-32 relative px-4 md:px-8">
+      <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
+        {/* Left rail heading (no eyebrow) */}
+        <div className="lg:col-span-4">
           <motion.h2
-            className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight font-display text-white mb-4"
-            initial={{ opacity: 0, y: 15 }}
+            className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white lg:sticky lg:top-28"
+            initial={reduce ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
+            transition={{ ease: EASE }}
           >
             {t.faq.sectionTitle}
+            <span className="block text-base font-normal text-zinc-500 mt-4 max-w-xs leading-relaxed">
+              {t.faq.sectionSubhead}
+            </span>
           </motion.h2>
-          <motion.p
-            className="text-zinc-400 text-base sm:text-lg font-light leading-relaxed"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-          >
-            {t.faq.sectionSubhead}
-          </motion.p>
         </div>
 
-        {/* Elegant FAQ list */}
-        <div className="max-w-3xl mx-auto flex flex-col gap-4">
+        {/* Accordion */}
+        <div className="lg:col-span-8 flex flex-col gap-3">
           {t.faq.items.map((item, idx) => {
             const isOpen = openId === item.id;
-
             return (
               <motion.div
                 key={item.id}
-                className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
-                  isOpen 
-                    ? "bg-[#0f0a20] border-violet-500/30 shadow-lg shadow-violet-950/10" 
-                    : "bg-[#0d0a18]/45 border-white/5 hover:border-white/10"
-                }`}
-                initial={{ opacity: 0, y: 15 }}
+                className={`rounded-2xl border transition-colors duration-300 overflow-hidden ${isOpen ? "bg-[#0a0a0c] border-[#ecdb33]/30" : "bg-[#0a0a0c]/50 border-white/[0.06] hover:border-white/15"}`}
+                initial={reduce ? false : { opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: idx * 0.08, duration: 0.5 }}
+                transition={{ delay: idx * 0.06, duration: 0.5, ease: EASE }}
               >
-                {/* Trigger Button bar */}
                 <button
-                  onClick={() => toggleFaq(item.id)}
-                  className="w-full py-5 px-6 flex items-center justify-between text-start cursor-pointer focus:outline-none"
+                  onClick={() => setOpenId(isOpen ? null : item.id)}
+                  className="w-full py-5 px-5 sm:px-6 flex items-center justify-between gap-4 text-start"
+                  aria-expanded={isOpen}
                 >
-                  <div className="flex items-center gap-4">
-                    <HelpCircle className={`w-5 h-5 flex-shrink-0 transition-colors ${isOpen ? "text-violet-400" : "text-zinc-500"}`} />
-                    <span className="text-sm sm:text-base font-bold text-white group-hover:text-violet-300">
-                      {item.question}
-                    </span>
-                  </div>
-                  <div className="p-1.5 rounded-full bg-white/5 flex-shrink-0 ml-4 rtl:ml-0 rtl:mr-4">
-                    {isOpen ? (
-                      <Minus className="w-4 h-4 text-violet-400" />
-                    ) : (
-                      <Plus className="w-4 h-4 text-zinc-400" />
-                    )}
-                  </div>
+                  <span className={`text-sm sm:text-base font-semibold transition-colors ${isOpen ? "text-white" : "text-zinc-200"}`}>
+                    {item.question}
+                  </span>
+                  <span className={`grid place-items-center w-8 h-8 rounded-full flex-shrink-0 transition-colors ${isOpen ? "bg-[#ecdb33] text-black" : "bg-white/[0.05] text-zinc-400"}`}>
+                    {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                  </span>
                 </button>
-
-                {/* Animated Height Content */}
                 <AnimatePresence initial={false}>
                   {isOpen && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.35, ease: "easeInOut" }}
+                      transition={{ duration: 0.32, ease: EASE }}
                     >
-                      <div className="px-6 pb-6 pt-1 border-t border-white/5 text-xs sm:text-sm text-zinc-400 font-light leading-relaxed">
+                      <p className="px-5 sm:px-6 pb-6 pt-1 text-sm text-zinc-400 leading-relaxed max-w-[62ch]">
                         {item.answer}
-                      </div>
+                      </p>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -106,7 +75,6 @@ export default function Faq({ t, locale }: FaqProps) {
             );
           })}
         </div>
-
       </div>
     </section>
   );

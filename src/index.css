@@ -1,83 +1,135 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* ============================================================
+   TAL3EEB DESIGN TOKENS
+   Canvas: true black. One locked, semantic game-HUD palette.
+   Yellow = primary / XP / reward   (black text sits on it)
+   Cyan   = data / tech / info
+   Green  = success / progress / complete
+   Red    = live / competitive / streak / urgency
+   ============================================================ */
 @theme {
-  --font-sans: "Inter", "Cairo", system-ui, sans-serif;
+  --font-sans: "Space Grotesk", "Cairo", system-ui, sans-serif;
   --font-display: "Space Grotesk", "Cairo", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-arabic: "Cairo", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --color-bg-dark: #06040c;
-  --color-bg-card: #0d0a18;
-  --color-brand-primary: #8b5cf6;
-  --color-brand-primary-hover: #7c3aed;
-  --color-brand-secondary: #f59e0b;
-  --color-brand-secondary-hover: #d97706;
-  --color-neon-cyan: #06b6d4;
-  --color-neon-emerald: #10b981;
+  /* Canvas + surfaces */
+  --color-ink: #000000;
+  --color-surface: #0a0a0c;
+  --color-surface-2: #101014;
+  --color-hairline: rgba(255, 255, 255, 0.08);
+
+  /* Brand accents (locked) */
+  --color-brand-yellow: #ecdb33;
+  --color-brand-cyan: #40ccd0;
+  --color-brand-green: #3cdb4e;
+  --color-brand-red: #d04242;
+
+  /* Text ink */
+  --color-fg: #f5f5f4;
+  --color-fg-dim: #a1a1aa;
+  --color-fg-mute: #6b6b74;
 }
 
-/* Custom global overrides */
+/* ---------- Global base ---------- */
 html {
   scroll-behavior: smooth;
-  background-color: var(--color-bg-dark);
-  color: #f4f4f5;
+  background-color: #000000;
+  color: var(--color-fg);
   overflow-x: hidden;
 }
 
 body {
   font-family: var(--font-sans);
+  background-color: #000000;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
+/* Arabic gets Cairo as the primary family for correct weight + shaping */
+html[lang="ar"] body,
+html[lang="ar"] .font-display,
+html[lang="ar"] h1,
+html[lang="ar"] h2,
+html[lang="ar"] h3 {
+  font-family: var(--font-arabic);
 }
-::-webkit-scrollbar-track {
-  background: #06040c;
+
+::selection {
+  background: var(--color-brand-yellow);
+  color: #000000;
 }
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar { width: 9px; }
+::-webkit-scrollbar-track { background: #000000; }
 ::-webkit-scrollbar-thumb {
-  background: #251b40;
-  border-radius: 4px;
+  background: #1c1c22;
+  border-radius: 999px;
+  border: 2px solid #000000;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #3b2c66;
+::-webkit-scrollbar-thumb:hover { background: #2b2b34; }
+
+/* ---------- Utility: hero console glow (rationed — hero only) ---------- */
+.console-glow {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 30px 80px -20px rgba(0, 0, 0, 0.9),
+    0 0 90px -30px rgba(236, 219, 51, 0.35);
 }
 
-/* Custom background animation keys */
-@keyframes blob-float {
-  0% {
-    transform: translate(0px, 0px) scale(1);
+/* Subtle inner top-edge highlight for glass panels */
+.edge-hi {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ---------- Ambient blob drift ---------- */
+@keyframes drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(28px, -36px, 0) scale(1.08); }
+  100% { transform: translate3d(-18px, 22px, 0) scale(0.96); }
+}
+.animate-drift { animation: drift 18s ease-in-out infinite alternate; }
+.animate-drift-slow { animation: drift 26s ease-in-out infinite alternate-reverse; }
+
+/* ---------- Marquee (single use: logo wall) ---------- */
+@keyframes marquee-x {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-marquee { animation: marquee-x 32s linear infinite; }
+html[dir="rtl"] .animate-marquee { animation-direction: reverse; }
+
+/* ---------- Slow spin for HUD rings ---------- */
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.animate-spin-slow { animation: spin-slow 14s linear infinite; }
+
+/* ---------- Scanline sheen for the console screen ---------- */
+@keyframes sheen {
+  0%   { transform: translateX(-120%); }
+  60%, 100% { transform: translateX(220%); }
+}
+.animate-sheen { animation: sheen 6s ease-in-out infinite; }
+
+/* ---------- Fine grain texture (fixed layer only) ---------- */
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .animate-drift,
+  .animate-drift-slow,
+  .animate-marquee,
+  .animate-spin-slow,
+  .animate-sheen {
+    animation: none !important;
   }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
   }
-  66% {
-    transform: translate(-20px, 20px) scale(0.95);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-}
-
-.animate-blob {
-  animation: blob-float 12s infinite alternate ease-in-out;
-}
-
-.animate-blob-reverse {
-  animation: blob-float 16s infinite alternate-reverse ease-in-out;
-}
-
-/* Text glow effects */
-.glow-primary {
-  text-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
-}
-
-.glow-secondary {
-  text-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
-}
-
-/* Noise overlay */
-.noise-overlay {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
 }

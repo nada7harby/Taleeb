@@ -4,6 +4,7 @@ import { motion, useScroll, useSpring } from "motion/react";
 import BackgroundEffect from "./components/BackgroundEffect";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
+import LogoWall from "./components/LogoWall";
 import Services from "./components/Services";
 import Features from "./components/Features";
 import Statistics from "./components/Statistics";
@@ -34,11 +35,11 @@ export default function App() {
   });
 
   return (
-    <div id="tal3eeb-root" className={`min-h-screen relative text-zinc-100 ${locale === "ar" ? "font-sans font-medium" : "font-sans"}`}>
+    <div id="tal3eeb-root" className="min-h-[100dvh] relative text-zinc-100 font-sans">
       {/* Scroll progress bar overlay */}
-      <motion.div 
+      <motion.div
         id="scroll-progress-indicator"
-        className="fixed top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-violet-500 via-fuchsia-500 to-amber-400 z-[9999] origin-left"
+        className="fixed top-0 left-0 right-0 h-[2px] bg-[#ecdb33] z-[9999] origin-left"
         style={{ scaleX }}
       />
 
@@ -53,6 +54,9 @@ export default function App() {
         
         {/* 1. Immersive Redesigned Hero Section */}
         <Hero t={t} locale={locale} />
+
+        {/* 1b. Trusted-by integration logo wall */}
+        <LogoWall t={t} locale={locale} />
 
         {/* 2. Bento-style Services Section */}
         <Services t={t} locale={locale} />
