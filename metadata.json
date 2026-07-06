@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Tal3eeb",
+  "description": "An award-winning bilingual redesign of Tal3eeb, the premium gamification agency. Immersive playful mechanics, sleek dark aesthetics, and gorgeous micro-interactions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
