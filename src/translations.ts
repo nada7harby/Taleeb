@@ -204,7 +204,7 @@ export const translations: Record<"en" | "ar", TranslationDictionary> = {
           role: "VP of Human Capital",
           company: "Riyadh Logistics Group",
           avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-          quote: "Tal3eeb revolutionized our onboarding process. Our training completion rates went from 20% to an incredible 96% in just three weeks. Our team didn't feel like they were studying—they were conquering a collaborative dungeon together.",
+          quote: "Tal3eeb revolutionized our onboarding process. Our training completion rates went from 20% to an incredible 96% in just three weeks. Our team didn't feel like they were studying. They were conquering a collaborative dungeon together.",
           rating: 5,
         },
         {
