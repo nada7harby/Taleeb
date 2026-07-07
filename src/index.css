@@ -114,6 +114,22 @@ html[dir="rtl"] .animate-marquee { animation-direction: reverse; }
 }
 .animate-sheen { animation: sheen 6s ease-in-out infinite; }
 
+/* ---------- Slow cinematic camera push (hero video) ---------- */
+@keyframes cine-pan {
+  0%   { transform: scale(1.12) translate3d(0, 0, 0); }
+  50%  { transform: scale(1.2) translate3d(-1.5%, -1.2%, 0); }
+  100% { transform: scale(1.12) translate3d(0, 0, 0); }
+}
+.animate-cine { animation: cine-pan 40s ease-in-out infinite; }
+
+/* ---------- Atmospheric fog drift ---------- */
+@keyframes fog {
+  0%   { transform: translate3d(-4%, 0, 0); opacity: 0.5; }
+  50%  { transform: translate3d(4%, -2%, 0); opacity: 0.8; }
+  100% { transform: translate3d(-4%, 0, 0); opacity: 0.5; }
+}
+.animate-fog { animation: fog 30s ease-in-out infinite; }
+
 /* ---------- Fine grain texture (fixed layer only) ---------- */
 .grain {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
@@ -126,7 +142,9 @@ html[dir="rtl"] .animate-marquee { animation-direction: reverse; }
   .animate-drift-slow,
   .animate-marquee,
   .animate-spin-slow,
-  .animate-sheen {
+  .animate-sheen,
+  .animate-cine,
+  .animate-fog {
     animation: none !important;
   }
   *, *::before, *::after {
