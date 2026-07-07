@@ -3,7 +3,7 @@ import { motion, useScroll, useSpring } from "motion/react";
 
 import BackgroundEffect from "./components/BackgroundEffect";
 import Navbar from "./components/Navbar";
-import Hero from "./components/Hero";
+import { HeroSection } from "@/components/ui/3d-hero-section-boxes";
 import LogoWall from "./components/LogoWall";
 import Services from "./components/Services";
 import Features from "./components/Features";
@@ -52,8 +52,8 @@ export default function App() {
       {/* Main Core Content Container */}
       <main id="main-content" className="relative z-10 w-full overflow-hidden">
         
-        {/* 1. Immersive Redesigned Hero Section */}
-        <Hero t={t} locale={locale} />
+        {/* 1. Immersive 3D Spline Hero Section (app supplies its own Navbar; drop the demo filler) */}
+        <HeroSection t={t} locale={locale} showNavbar={false} showPlaceholder={false} />
 
         {/* 1b. Trusted-by integration logo wall */}
         <LogoWall t={t} locale={locale} />

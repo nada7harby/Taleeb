@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { ArrowRight, Play } from "lucide-react";
+import Spline from "@splinetool/react-spline";
 import { TranslationDictionary } from "../types";
 import { EASE } from "../theme";
-import heroVideo from "@/assets/hero2.mp4";
+
+const SPLINE_SCENE = "https://prod.spline.design/dJqTIQ-tE3ULUPMi/scene.splinecode";
 
 interface HeroProps {
   t: TranslationDictionary;
@@ -23,18 +25,18 @@ export default function Hero({ t, locale }: HeroProps) {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
 
-  // Defer the video past first paint so the title is the LCP, not the clip.
-  const [showVideo, setShowVideo] = useState(false);
+  // Defer the heavy Spline scene past first paint so the title is the LCP, not the 3D canvas.
+  const [showScene, setShowScene] = useState(false);
   useEffect(() => {
     if (reduce) return;
     const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
-    const id = w.requestIdleCallback ? w.requestIdleCallback(() => setShowVideo(true)) : window.setTimeout(() => setShowVideo(true), 300);
+    const id = w.requestIdleCallback ? w.requestIdleCallback(() => setShowScene(true)) : window.setTimeout(() => setShowScene(true), 300);
     return () => { if (!w.requestIdleCallback) clearTimeout(id as number); };
   }, [reduce]);
 
-  // Gentle scroll parallax layered on top of the slow CSS camera push.
+  // Gentle scroll parallax layered on top of the slow 3D camera push.
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const videoY = useTransform(scrollYProgress, [0, 1], ["0%", "16%"]);
+  const sceneY = useTransform(scrollYProgress, [0, 1], ["0%", "16%"]);
   const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.65], [1, 0]);
 
@@ -46,17 +48,13 @@ export default function Hero({ t, locale }: HeroProps) {
   return (
     <section ref={ref} id="hero" className="relative min-h-[100dvh] flex items-center overflow-hidden bg-black">
 
-      {/* ── Layer 0 · the environment (video) ──────────────────── */}
-      <motion.div className="absolute inset-0 z-0" style={reduce ? undefined : { y: videoY }}>
-        {showVideo && (
-          <video
-            className="absolute inset-0 w-full h-full object-cover opacity-95 animate-cine [filter:brightness(0.68)_saturate(0.85)_contrast(1.04)_hue-rotate(-6deg)]"
-            src={heroVideo}
-            autoPlay loop muted playsInline preload="metadata" aria-hidden="true"
-            style={{
-              maskImage: "radial-gradient(ellipse 95% 88% at 55% 45%, #000 62%, transparent 100%)",
-              WebkitMaskImage: "radial-gradient(ellipse 95% 88% at 55% 45%, #000 62%, transparent 100%)",
-            }}
+      {/* ── Layer 0 · the environment (3D Spline scene) ────────── */}
+      <motion.div className="absolute inset-0 z-0" style={reduce ? undefined : { y: sceneY }}>
+        {showScene && (
+          <Spline
+            scene={SPLINE_SCENE}
+            className="absolute inset-0 w-full h-full [filter:brightness(0.82)_saturate(0.92)]"
+            style={{ width: "100%", height: "100%" }}
           />
         )}
       </motion.div>
