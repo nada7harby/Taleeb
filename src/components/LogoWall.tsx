@@ -24,6 +24,27 @@ export default function LogoWall({ t, locale }: LogoWallProps) {
 
   return (
     <section className="relative px-4 md:px-8 pb-8 pt-2">
+      {/* Seam blend — continues the hero's ambient glow/particles up past this
+          section's own top edge (unclipped, so it genuinely bleeds across the
+          boundary) and fades it back to plain black within ~14rem, so the two
+          sections read as one continuous atmosphere instead of a hard cut. */}
+      <div className="pointer-events-none absolute inset-x-0 -top-24 h-56 overflow-hidden -z-10">
+        <div className="absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent via-black/60 to-black" />
+        <div className="absolute left-[22%] top-4 w-[30vw] h-[30vw] max-w-[300px] max-h-[300px] rounded-full bg-[#3cdb4e]/[0.05] blur-[100px]" />
+        <div className="absolute right-[20%] top-8 w-[26vw] h-[26vw] max-w-[280px] max-h-[280px] rounded-full bg-[#40ccd0]/[0.05] blur-[110px]" />
+        {/* a few stray embers continuing the hero's particle field */}
+        {[
+          { x: "12%", y: "20%" }, { x: "34%", y: "42%" }, { x: "58%", y: "16%" },
+          { x: "74%", y: "36%" }, { x: "88%", y: "24%" },
+        ].map((p, i) => (
+          <span
+            key={i}
+            className="absolute rounded-full bg-white/30"
+            style={{ left: p.x, top: p.y, width: 1.5, height: 1.5 }}
+          />
+        ))}
+      </div>
+
       <div className="max-w-[1400px] mx-auto">
         <motion.p
           className="text-center text-sm text-zinc-500 mb-8"

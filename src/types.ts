@@ -64,6 +64,8 @@ export interface TranslationDictionary {
     features: string;
     impact: string;
     faq: string;
+    about: string;
+    products: string;
     contact: string;
     cta: string;
   };

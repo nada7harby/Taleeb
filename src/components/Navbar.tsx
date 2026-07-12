@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "motion/react";
 import { Languages, Menu, X, ArrowUpRight } from "lucide-react";
 import { TranslationDictionary } from "../types";
@@ -13,6 +14,9 @@ interface NavbarProps {
 export default function Navbar({ t, locale, setLocale }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const onHome = location.pathname === "/";
 
   // Scroll state via Motion — no window scroll listener.
   const { scrollY } = useScroll();
@@ -25,21 +29,40 @@ export default function Navbar({ t, locale, setLocale }: NavbarProps) {
     document.documentElement.lang = next;
   };
 
+  // In-page sections (home only) vs. real routes — routes always navigate;
+  // anchors scroll directly on the home page, or hop home-then-scroll from
+  // any other route (ScrollToTop picks up the hash once Home has mounted).
   const navLinks = [
-    { href: "#services", label: t.nav.services },
-    { href: "#features", label: t.nav.features },
-    { href: "#impact", label: t.nav.impact },
-    { href: "#faq", label: t.nav.faq },
+    { href: "#services", label: t.nav.services, kind: "anchor" as const },
+    { href: "#features", label: t.nav.features, kind: "anchor" as const },
+    { href: "#impact", label: t.nav.impact, kind: "anchor" as const },
+    { href: "#faq", label: t.nav.faq, kind: "anchor" as const },
+    { href: "/about", label: t.nav.about, kind: "route" as const },
+    { href: "/products", label: t.nav.products, kind: "route" as const },
   ];
 
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     setMobileMenuOpen(false);
+    if (!onHome) {
+      navigate(`/${href}`);
+      return;
+    }
     const el = href === "#" ? document.body : document.querySelector(href);
     if (el) {
       const top = href === "#" ? 0 : el.getBoundingClientRect().top + window.scrollY - 96;
       window.scrollTo({ top, behavior: "smooth" });
     }
+  };
+
+  const handleBrandClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    if (!onHome) {
+      navigate("/");
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -58,7 +81,7 @@ export default function Navbar({ t, locale, setLocale }: NavbarProps) {
           }`}
         >
           {/* Brand */}
-          <a href="#" onClick={(e) => handleLinkClick(e, "#")} className="flex items-center gap-2.5 group ps-2">
+          <a href="/" onClick={handleBrandClick} className="flex items-center gap-2.5 group ps-2">
             <motion.span
               className="relative grid place-items-center w-9 h-9 rounded-xl bg-[#ecdb33] text-black font-mono font-bold text-lg overflow-hidden"
               whileHover={{ rotate: -6 }}
@@ -74,16 +97,29 @@ export default function Navbar({ t, locale, setLocale }: NavbarProps) {
 
           {/* Desktop links */}
           <nav className="hidden lg:flex items-center gap-0.5 bg-white/[0.03] rounded-full p-1 border border-white/[0.06]">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={(e) => handleLinkClick(e, link.href)}
-                className="px-4 py-1.5 rounded-full text-[0.9rem] font-medium text-zinc-400 hover:text-white hover:bg-white/[0.05] transition-colors duration-200"
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.kind === "route" ? (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-1.5 rounded-full text-[0.9rem] font-medium transition-colors duration-200 ${
+                    location.pathname === link.href ? "text-white bg-white/[0.06]" : "text-zinc-400 hover:text-white hover:bg-white/[0.05]"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={(e) => handleAnchorClick(e, link.href)}
+                  className="px-4 py-1.5 rounded-full text-[0.9rem] font-medium text-zinc-400 hover:text-white hover:bg-white/[0.05] transition-colors duration-200"
+                >
+                  {link.label}
+                </a>
+              )
+            )}
           </nav>
 
           {/* Desktop actions */}
@@ -98,7 +134,7 @@ export default function Navbar({ t, locale, setLocale }: NavbarProps) {
 
             <motion.a
               href="#contact"
-              onClick={(e) => handleLinkClick(e, "#contact")}
+              onClick={(e) => handleAnchorClick(e, "#contact")}
               className="group flex items-center gap-1.5 ps-5 pe-4 py-2 rounded-full bg-[#ecdb33] font-semibold text-sm text-black shadow-[0_8px_30px_-8px_rgba(236,219,51,0.6)]"
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.96 }}
@@ -139,24 +175,41 @@ export default function Navbar({ t, locale, setLocale }: NavbarProps) {
             transition={{ duration: 0.3 }}
           >
             <nav className="flex flex-col gap-2">
-              {navLinks.map((link, i) => (
-                <motion.a
-                  key={link.href}
-                  href={link.href}
-                  onClick={(e) => handleLinkClick(e, link.href)}
-                  className="text-3xl font-bold text-zinc-200 hover:text-[#ecdb33] transition-colors py-3 border-b border-white/[0.06]"
-                  initial={{ opacity: 0, x: locale === "en" ? -30 : 30 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.06 * i, duration: 0.4, ease: EASE }}
-                >
-                  {link.label}
-                </motion.a>
-              ))}
+              {navLinks.map((link, i) =>
+                link.kind === "route" ? (
+                  <motion.div
+                    key={link.href}
+                    initial={{ opacity: 0, x: locale === "en" ? -30 : 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.06 * i, duration: 0.4, ease: EASE }}
+                  >
+                    <Link
+                      to={link.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block text-3xl font-bold text-zinc-200 hover:text-[#ecdb33] transition-colors py-3 border-b border-white/[0.06]"
+                    >
+                      {link.label}
+                    </Link>
+                  </motion.div>
+                ) : (
+                  <motion.a
+                    key={link.href}
+                    href={link.href}
+                    onClick={(e) => handleAnchorClick(e, link.href)}
+                    className="text-3xl font-bold text-zinc-200 hover:text-[#ecdb33] transition-colors py-3 border-b border-white/[0.06]"
+                    initial={{ opacity: 0, x: locale === "en" ? -30 : 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.06 * i, duration: 0.4, ease: EASE }}
+                  >
+                    {link.label}
+                  </motion.a>
+                )
+              )}
             </nav>
 
             <a
               href="#contact"
-              onClick={(e) => handleLinkClick(e, "#contact")}
+              onClick={(e) => handleAnchorClick(e, "#contact")}
               className="flex items-center justify-center gap-2 py-4 rounded-full bg-[#ecdb33] text-lg font-bold text-black"
             >
               <span>{t.nav.cta}</span>

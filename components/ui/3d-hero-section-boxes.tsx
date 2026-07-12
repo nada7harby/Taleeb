@@ -103,15 +103,32 @@ function HeroSplineBackground() {
       pointerEvents: 'auto',
       overflow: 'hidden',
     }}>
+      {/* Spline's own internal camera/composition isn't controllable from here,
+          so scaling the component itself is how we make the cubes actually
+          fill the canvas instead of sitting small/off-centre within it. */}
       <Spline
+        className="scale-125 md:scale-150 lg:scale-[1.75] xl:scale-[2]"
         style={{
           width: '100%',
           height: '100vh',
           pointerEvents: 'auto',
+          transformOrigin: 'center center',
         }}
         scene="https://prod.spline.design/dJqTIQ-tE3ULUPMi/scene.splinecode"
       />
       <AmbientMotion />
+      {/* Seam blend — the Spline canvas otherwise cuts off in a hard rectangle
+          at 100vh. Fading it to black over the last ~22vh, plus a couple of
+          faint brand-coloured glows right at the edge, lets the next section's
+          own top-of-seam treatment (see LogoWall) pick up the atmosphere
+          instead of the page reading as two disconnected blocks. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[22vh] z-[2] bg-gradient-to-b from-transparent via-black/70 to-black" />
+      {/* This wrapper keeps overflow:hidden (needed to clip the scaled-up
+          Spline canvas), so these glows can't bleed past it themselves —
+          they just soften the fade zone. The actual cross-section bleed
+          into LogoWall is handled from that component's own side instead. */}
+      <div className="pointer-events-none absolute bottom-0 start-[18%] w-[26vw] h-[26vw] max-w-[320px] max-h-[320px] translate-y-1/3 rounded-full bg-[#40ccd0]/[0.08] blur-[110px] z-[2]" />
+      <div className="pointer-events-none absolute bottom-0 end-[15%] w-[24vw] h-[24vw] max-w-[320px] max-h-[320px] translate-y-1/3 rounded-full bg-[#ecdb33]/[0.07] blur-[120px] z-[2]" />
     </div>
   );
 }

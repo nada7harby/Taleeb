@@ -1,17 +1,15 @@
 import { useState, useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
 import { motion, useScroll, useSpring } from "motion/react";
 
 import BackgroundEffect from "./components/BackgroundEffect";
 import Navbar from "./components/Navbar";
-import { HeroSection } from "@/components/ui/3d-hero-section-boxes";
-import LogoWall from "./components/LogoWall";
-import Services from "./components/Services";
-import Features from "./components/Features";
-import Statistics from "./components/Statistics";
-import Testimonials from "./components/Testimonials";
-import Faq from "./components/Faq";
-import Contact from "./components/Contact";
 import Footer from "./components/Footer";
+import ScrollToTop from "./components/ScrollToTop";
+
+import HomePage from "./pages/HomePage";
+import AboutPage from "./pages/AboutPage";
+import ProductsPage from "./pages/ProductsPage";
 
 import { translations } from "./translations";
 
@@ -36,6 +34,8 @@ export default function App() {
 
   return (
     <div id="tal3eeb-root" className="min-h-[100dvh] relative text-zinc-100 font-sans">
+      <ScrollToTop />
+
       {/* Scroll progress bar overlay */}
       <motion.div
         id="scroll-progress-indicator"
@@ -51,31 +51,11 @@ export default function App() {
 
       {/* Main Core Content Container */}
       <main id="main-content" className="relative z-10 w-full overflow-hidden">
-        
-        {/* 1. Immersive 3D Spline Hero Section (app supplies its own Navbar; drop the demo filler) */}
-        <HeroSection t={t} locale={locale} showNavbar={false} showPlaceholder={false} />
-
-        {/* 1b. Trusted-by integration logo wall */}
-        <LogoWall t={t} locale={locale} />
-
-        {/* 2. Bento-style Services Section */}
-        <Services t={t} locale={locale} />
-
-        {/* 3. Gamification Mechanics & Features Section */}
-        <Features t={t} locale={locale} />
-
-        {/* 4. Statistics impact metrics Section */}
-        <Statistics t={t} locale={locale} />
-
-        {/* 5. Team Testimonials / Client reviews section */}
-        <Testimonials t={t} locale={locale} />
-
-        {/* 6. Accordion Frequently Answered Questions */}
-        <Faq t={t} locale={locale} />
-
-        {/* 7. Interactive Lead Capturing Form */}
-        <Contact t={t} locale={locale} />
-
+        <Routes>
+          <Route path="/" element={<HomePage t={t} locale={locale} />} />
+          <Route path="/about" element={<AboutPage t={t} locale={locale} />} />
+          <Route path="/products" element={<ProductsPage t={t} locale={locale} />} />
+        </Routes>
       </main>
 
       {/* Footer copyright info */}

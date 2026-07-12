@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { Link } from "react-router-dom";
 import { Twitter, Linkedin, Github, Instagram, ArrowUp } from "lucide-react";
 import { TranslationDictionary } from "../types";
 
@@ -39,6 +40,8 @@ export default function Footer({ t }: FooterProps) {
             <a href="#features" className="hover:text-[#ecdb33] transition-colors w-fit">{t.nav.features}</a>
             <a href="#impact" className="hover:text-[#ecdb33] transition-colors w-fit">{t.nav.impact}</a>
             <a href="#faq" className="hover:text-[#ecdb33] transition-colors w-fit">{t.nav.faq}</a>
+            <Link to="/about" className="hover:text-[#ecdb33] transition-colors w-fit">About</Link>
+            <Link to="/products" className="hover:text-[#ecdb33] transition-colors w-fit">Products</Link>
           </div>
         </div>
 
