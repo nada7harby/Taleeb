@@ -13,7 +13,7 @@
   --font-sans: "Space Grotesk", "Cairo", system-ui, sans-serif;
   --font-display: "Space Grotesk", "Cairo", system-ui, sans-serif;
   --font-arabic: "Cairo", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-mono: "JetBrains Mono", "Cairo", ui-monospace, monospace;
 
   /* Canvas + surfaces */
   --color-ink: #000000;
@@ -49,13 +49,15 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Arabic gets Cairo as the primary family for correct weight + shaping */
-html[lang="ar"] body,
-html[lang="ar"] .font-display,
-html[lang="ar"] h1,
-html[lang="ar"] h2,
-html[lang="ar"] h3 {
-  font-family: var(--font-arabic);
+/* Arabic gets Cairo as the primary family everywhere — redefining the sans/
+   display tokens here (rather than listing selectors) means every element
+   that consumes them, site-wide, picks it up automatically. Latin telemetry
+   figures stay on JetBrains Mono regardless of locale (Telemetry Face Rule,
+   DESIGN.md); Cairo only backs it up as a fallback for the rare Arabic word
+   set in a mono-styled label (e.g. footer headings). */
+html[lang="ar"] {
+  --font-sans: "Cairo", "Space Grotesk", system-ui, sans-serif;
+  --font-display: "Cairo", "Space Grotesk", system-ui, sans-serif;
 }
 
 ::selection {
