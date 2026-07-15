@@ -105,30 +105,37 @@ export default function Services({ t, locale }: ServicesProps) {
             return (
               <motion.div
                 key={item.id}
-                className={`${span} group relative rounded-3xl bg-[#0a0a0c]/80 border border-white/[0.06] ${c.hoverBorder} p-6 sm:p-8 flex flex-col justify-between overflow-hidden transition-colors duration-500`}
+                className={`${span} group relative rounded-3xl border border-white/[0.06] ${c.hoverBorder} p-6 sm:p-8 flex flex-col justify-between overflow-hidden transition-colors duration-500`}
+                style={{ background: `radial-gradient(130% 100% at 100% 0%, rgba(${c.rgb},0.12), rgba(10,10,12,0.94) 55%)` }}
                 initial={reduce ? false : { opacity: 0, y: 28 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ delay: index * 0.08, duration: 0.6, ease: EASE }}
               >
                 <div
-                  className="absolute -top-24 -end-24 w-56 h-56 rounded-full blur-[90px] opacity-0 group-hover:opacity-20 transition-opacity duration-700 pointer-events-none"
+                  className="absolute -top-24 -end-24 w-56 h-56 rounded-full blur-[90px] opacity-0 group-hover:opacity-25 transition-opacity duration-700 pointer-events-none"
                   style={{ background: c.hex }}
                 />
                 <div className="relative">
-                  <div className="flex items-start justify-between mb-6">
-                    <span className={`grid place-items-center w-14 h-14 rounded-2xl ${c.solid}`}>
-                      <Icon className="w-6 h-6" strokeWidth={2} />
-                    </span>
-                    <div className="text-end">
-                      <span className={`block text-2xl sm:text-3xl font-bold font-mono ${c.text}`}>{item.metrics.value}</span>
-                      <span className="block text-[10px] text-zinc-500 uppercase tracking-wider mt-0.5">{item.metrics.label}</span>
+                  {/* Achievement-card composition: copy on one side, an icon-illustration medallion with a floating stat callout on the other */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-6">
+                    <div className="flex-1 min-w-0 order-2 sm:order-1">
+                      <span className={`text-xs font-mono font-semibold uppercase tracking-wider ${c.text}`}>{item.subtitle}</span>
+                      <h3 className="text-xl sm:text-2xl font-bold text-white mt-1.5 mb-2">{item.title}</h3>
+                      <p className="text-zinc-400 text-sm leading-relaxed max-w-lg">{item.description}</p>
+                    </div>
+
+                    <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 mx-auto sm:mx-0 order-1 sm:order-2">
+                      <div className="absolute inset-0 rounded-full blur-2xl opacity-20" style={{ background: c.hex }} />
+                      <div className={`relative w-full h-full rounded-full ${c.bgSoft} border ${c.borderStrong} grid place-items-center`}>
+                        <Icon className={`w-10 h-10 sm:w-12 sm:h-12 ${c.text}`} strokeWidth={1.5} />
+                      </div>
+                      <span className="absolute -bottom-3 -end-3 flex flex-col items-center px-3 py-1.5 rounded-2xl bg-black border border-white/10 shadow-lg leading-none whitespace-nowrap">
+                        <span className={`text-sm font-bold font-mono ${c.text}`}>{item.metrics.value}</span>
+                        <span className="text-[8px] text-zinc-500 uppercase tracking-wider mt-0.5">{item.metrics.label}</span>
+                      </span>
                     </div>
                   </div>
-
-                  <span className={`text-xs font-mono font-semibold uppercase tracking-wider ${c.text}`}>{item.subtitle}</span>
-                  <h3 className="text-xl sm:text-2xl font-bold text-white mt-1.5 mb-3">{item.title}</h3>
-                  <p className="text-zinc-400 text-sm leading-relaxed mb-6 max-w-lg">{item.description}</p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 border-t border-white/[0.06] pt-5">
                     {item.features.map((feat, fi) => (
